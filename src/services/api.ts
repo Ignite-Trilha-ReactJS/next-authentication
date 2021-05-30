@@ -1,6 +1,8 @@
 import axios, { AxiosError } from 'axios'
 import { parseCookies, setCookie } from 'nookies'
 
+import { signOut } from '../contexts/AuthContext';
+
 
 let cookies = parseCookies();
 let isRefreshing = false;
@@ -16,7 +18,7 @@ export const api = axios.create({
 
 api.interceptors.response.use(response => response, (error: AxiosError) => {
   if (error ?.response.status == 401) {
-    if (error ?.response.data.code) {
+    if (String(error ?.response.data.code).toUpperCase() == "TOKEN.EXPIRED") {
       //Renovar token
 
       cookies = parseCookies();
@@ -64,6 +66,9 @@ api.interceptors.response.use(response => response, (error: AxiosError) => {
 
     } else {
       //Deslogar usuário
+      signOut();
     }
   }
+
+  return Promise.reject(error);
 })
