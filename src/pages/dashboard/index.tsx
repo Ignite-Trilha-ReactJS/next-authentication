@@ -2,8 +2,10 @@ import { useContext, useEffect } from "react";
 import { AuthContext } from "../../contexts/AuthContext";
 
 
-import React from 'react';
-import { api } from "../../services/api";
+import { api } from "../../services/apiClient";
+import { withSSRAuth } from "../../utils/withSSRAuth";
+import { setupApiClient } from "../../services/api";
+import { destroyCookie } from "nookies";
 
 // import { Container } from './styles';
 
@@ -21,3 +23,12 @@ const dashboard: React.FC = () => {
 }
 
 export default dashboard;
+
+export const getServerSideProps = withSSRAuth(async (ctx) => {
+  const apiClient = setupApiClient(ctx);
+  const response = await apiClient.get('/me');
+
+  return {
+    props: {}
+  }
+})
