@@ -3,18 +3,15 @@ import { AuthContext } from "../../contexts/AuthContext";
 
 import { withSSRAuth } from "../../utils/withSSRAuth";
 import { setupApiClient } from "../../services/api";
-import { Can } from "../../components/Can";
 
 const dashboard: React.FC = () => {
-  const { user } = useContext(AuthContext);
+  const { user, signOut } = useContext(AuthContext);
 
 
   return (
     <>
       <div>Dash - {user ?.email}</div>
-      <Can permissions={["metrics.list"]}>
-        <div>Métricas</div>
-      </Can>
+      <button onClick={() => signOut()}>SAIR</button>
     </>
 
   )

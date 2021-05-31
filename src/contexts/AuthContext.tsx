@@ -5,6 +5,7 @@ import Router from 'next/router';
 import { setCookie, parseCookies, destroyCookie } from 'nookies'
 
 import { api } from "../services/apiClient";
+import { channel } from "diagnostic_channel";
 
 
 interface IUser {
@@ -19,6 +20,7 @@ interface ISignInCredentials {
 }
 
 interface IAuthContextData {
+  signOut(): void;
   signIn(credentials: ISignInCredentials): Promise<void>;
   isAuthenticated: boolean;
   user: IUser | undefined;
@@ -28,11 +30,16 @@ interface IAuthProvider {
   children: ReactNode;
 }
 
+
 export const AuthContext = createContext({} as IAuthContextData);
+
+let authChannel: BroadcastChannel;
 
 export function signOut() {
   destroyCookie(undefined, '@nextauth:token');
   destroyCookie(undefined, '@nextauth:refreshToken');
+
+  authChannel.postMessage("signout");
 
   Router.push('/');
 }
@@ -40,6 +47,25 @@ export function signOut() {
 export function AuthProvider({ children }: IAuthProvider) {
   const [user, setUser] = useState<IUser>();
   const isAuthenticated = Boolean(user);
+
+  useEffect(() => {
+    authChannel = new BroadcastChannel("auth");
+
+    authChannel.onmessage = (message) => {
+      switch (message.data) {
+        case 'signout':
+          signOut();
+          break;
+
+        case 'signin':
+          Router.push("/dashboard");
+          break;
+
+        default:
+          break;
+      }
+    }
+  }, [])
 
   useEffect(() => {
     const { "@nextauth:token": token } = parseCookies();
@@ -93,6 +119,7 @@ export function AuthProvider({ children }: IAuthProvider) {
   return (
     <AuthContext.Provider value={{
       signIn,
+      signOut,
       isAuthenticated,
       user
     }}>
