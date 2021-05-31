@@ -10,7 +10,7 @@ import { api } from "../services/apiClient";
 interface IUser {
   email: string;
   permissions: string[];
-  rules: string[];
+  roles: string[];
 }
 
 interface ISignInCredentials {
@@ -21,7 +21,7 @@ interface ISignInCredentials {
 interface IAuthContextData {
   signIn(credentials: ISignInCredentials): Promise<void>;
   isAuthenticated: boolean;
-  user: IUser;
+  user: IUser | undefined;
 }
 
 interface IAuthProvider {
@@ -38,8 +38,8 @@ export function signOut() {
 }
 
 export function AuthProvider({ children }: IAuthProvider) {
-  const [user, setUser] = useState<IUser>({} as IUser);
-  const isAuthenticated = !!user;
+  const [user, setUser] = useState<IUser>();
+  const isAuthenticated = Boolean(user);
 
   useEffect(() => {
     const { "@nextauth:token": token } = parseCookies();
@@ -47,8 +47,8 @@ export function AuthProvider({ children }: IAuthProvider) {
     if (token) {
       api.get("/me")
         .then(response => {
-          const { email, permissions, rules } = response.data;
-          setUser({ email, permissions, rules })
+          const { email, permissions, roles } = response.data;
+          setUser({ email, permissions, roles })
         })
         .catch(() => {
           signOut();
@@ -64,7 +64,7 @@ export function AuthProvider({ children }: IAuthProvider) {
         email, password
       });
 
-      const { rules, permissions, token, refreshToken } = response.data;
+      const { roles, permissions, token, refreshToken } = response.data;
 
       setCookie(undefined, '@nextauth:token', token, {
         maxAge: 60 * 60 * 24 * 30, // 30dias,
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: IAuthProvider) {
 
       setUser({
         email,
-        rules,
+        roles,
         permissions
       })
 

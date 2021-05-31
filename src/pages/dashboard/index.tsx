@@ -1,24 +1,22 @@
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import { AuthContext } from "../../contexts/AuthContext";
 
-
-import { api } from "../../services/apiClient";
 import { withSSRAuth } from "../../utils/withSSRAuth";
 import { setupApiClient } from "../../services/api";
-import { destroyCookie } from "nookies";
-
-// import { Container } from './styles';
+import { Can } from "../../components/Can";
 
 const dashboard: React.FC = () => {
   const { user } = useContext(AuthContext);
 
-  useEffect(() => {
-    api.get("/me")
-      .then(response => console.log(response))
-      .catch((error) => console.log(error))
-  }, [])
+
   return (
-    <div>Dash - {user ?.email}</div>
+    <>
+      <div>Dash - {user ?.email}</div>
+      <Can permissions={["metrics.list"]}>
+        <div>Métricas</div>
+      </Can>
+    </>
+
   )
 }
 
